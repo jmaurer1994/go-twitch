@@ -76,9 +76,11 @@ func (c *ChannelsUpdateCall) SetIsBrandedContent(isBrandedContent bool) *Channel
 func (r *ChannelsResource) List() *ChannelsListCall {
 	return &ChannelsListCall{resource: r}
 }
-// Update makes a request to update channel details.
-func (r *ChannelsResource) Update() *ChannelsUpdateCall {
-    return &ChannelsUpdateCall{resource: r}
+func (r *ChannelsResource) Update(broadcasterID string) *ChannelsUpdateCall {
+    return &ChannelsUpdateCall{
+        resource: r,
+        channel:  Channel{ID: broadcasterID},
+    }
 }
 
 // BroadcasterID filters the results to the specified broadcaster ID.
