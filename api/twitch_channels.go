@@ -1,8 +1,10 @@
 package api
 
 import (
+    "bytes"
 	"context"
 	"net/http"
+    "encoding/json"
 )
 
 type Channel struct {
@@ -35,10 +37,48 @@ type ChannelsListResponse struct {
 	Header http.Header
 	Data   []Channel
 }
+type ChannelsUpdateCall struct {
+    resource *ChannelsResource
+    channel  Channel
+    opts     []RequestOption
+}
 
+// SetTitle sets the title for the channel update.
+func (c *ChannelsUpdateCall) SetTitle(title string) *ChannelsUpdateCall {
+    c.channel.Title = title
+    return c
+}
+
+// SetGameID sets the game ID for the channel update.
+func (c *ChannelsUpdateCall) SetGameID(gameID string) *ChannelsUpdateCall {
+    c.channel.GameID = gameID
+    return c
+}
+
+// SetDelay sets the delay for the channel update.
+func (c *ChannelsUpdateCall) SetDelay(delay int) *ChannelsUpdateCall {
+    c.channel.Delay = delay
+    return c
+}
+
+// SetTags sets the tags for the channel update.
+func (c *ChannelsUpdateCall) SetTags(tags []string) *ChannelsUpdateCall {
+    c.channel.Tags = tags
+    return c
+}
+
+// SetIsBrandedContent sets the branded content flag for the channel update.
+func (c *ChannelsUpdateCall) SetIsBrandedContent(isBrandedContent bool) *ChannelsUpdateCall {
+    c.channel.IsBrandedContent = isBrandedContent
+    return c
+}
 // List creates a request to list channels based on the specified criteria.
 func (r *ChannelsResource) List() *ChannelsListCall {
 	return &ChannelsListCall{resource: r}
+}
+// Update makes a request to update channel details.
+func (r *ChannelsResource) Update() *ChannelsUpdateCall {
+    return &ChannelsUpdateCall{resource: r}
 }
 
 // BroadcasterID filters the results to the specified broadcaster ID.
@@ -66,4 +106,24 @@ func (c *ChannelsListCall) Do(ctx context.Context, opts ...RequestOption) (*Chan
 		Header: res.Header,
 		Data:   data.Data,
 	}, nil
+}
+
+func (c *ChannelsUpdateCall) Do(ctx context.Context, opts ...RequestOption) error {
+    // Convert the channel struct to JSON for the request body
+    body, err := json.Marshal(c.channel)
+    if err != nil {
+        return err
+    }
+
+    // Execute the PATCH request
+    res, err := c.resource.client.doRequest(ctx, http.MethodPatch, "/channels", bytes.NewReader(body), append(opts, c.opts...)...)
+    if err != nil {
+        return err
+    }
+    defer res.Body.Close()
+
+    // Handle response here...
+    // For example, check if the status code is 200 OK or handle errors
+
+    return nil
 }
